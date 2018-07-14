@@ -21,26 +21,37 @@
 
 #include "controller.h"
 
-//
+//STM32
+#include "main.h"
+#include "stm32f1xx_hal.h"
+//Interaction
 #include "usart_txrx.h"
 #include "stockpile.h"
-//
-//#include "kalman.h"
+//Kernel
+#include "as5048.h"
 #include "sin_form.h"
 //Math
 #include <stdlib.h>
 #include "arm_math.h"
 
-#define gpio_h(GPIOx, GPIO_Pin)		GPIOx->BSRR = GPIO_Pin
-#define gpio_l(GPIOx, GPIO_Pin)		GPIOx->BSRR = (uint32_t)GPIO_Pin << 16U
-#define in1_h()	gpio_h(in1_port, in1_pin)
-#define in1_l()	gpio_l(in1_port, in1_pin)
-#define in2_h()	gpio_h(in2_port, in2_pin)
-#define in2_l()	gpio_l(in2_port, in2_pin)
-#define in3_h()	gpio_h(in3_port, in3_pin)
-#define in3_l()	gpio_l(in3_port, in3_pin)
-#define in4_h()	gpio_h(in4_port, in4_pin)
-#define in4_l()	gpio_l(in4_port, in4_pin)
+//引用的外部定义及其引用方式
+extern DAC_HandleTypeDef hdac;
+extern AS5048 encode;	//引用encode
+#define drive_a_Analog(reg)	HAL_DAC_SetValue(&hdac, DAC_CHANNEL_1, DAC_ALIGN_12B_R, reg);
+#define drive_b_Analog(reg)	HAL_DAC_SetValue(&hdac, DAC_CHANNEL_2, DAC_ALIGN_12B_R, reg);
+#define drive_a1_h()	Quick_GPIO_H(DSA1_GPIO_Port, DSA1_Pin)
+#define drive_a1_l()	Quick_GPIO_L(DSA1_GPIO_Port, DSA1_Pin)
+#define drive_a2_h()	Quick_GPIO_H(DSA2_GPIO_Port, DSA2_Pin)
+#define drive_a2_l()	Quick_GPIO_L(DSA2_GPIO_Port, DSA2_Pin)
+#define drive_a3_h()	Quick_GPIO_H(DSA3_GPIO_Port, DSA3_Pin)
+#define drive_a3_l()	Quick_GPIO_L(DSA3_GPIO_Port, DSA3_Pin)
+#define drive_b1_h()	Quick_GPIO_H(DSB1_GPIO_Port, DSB1_Pin)
+#define drive_b1_l()	Quick_GPIO_L(DSB1_GPIO_Port, DSB1_Pin)
+#define drive_b2_h()	Quick_GPIO_H(DSB2_GPIO_Port, DSB2_Pin)
+#define drive_b2_l()	Quick_GPIO_L(DSB2_GPIO_Port, DSB2_Pin)
+#define drive_b3_h()	Quick_GPIO_H(DSB3_GPIO_Port, DSB3_Pin)
+#define drive_b3_l()	Quick_GPIO_L(DSB3_GPIO_Port, DSB3_Pin)
+
 
 //矫正数据表Flash位置
 float *CTA = (float*)0x08020000;
@@ -64,11 +75,12 @@ void PID_Empty(PID_Typedef *st)
 Controller::Controller()
 {
 	//控制参数
-	up_spr(200);
-	sdb = 32;			//每步细分数			默认32
-	dir_pm = true;		//旋转方向			由于编码器和电机接线存在未知性,可该参数控制旋转方向
-	t_pm = 4.72f;		//力矩->电流			1.7A->0.36Nm
-	iu_pm = 1.0f;		//电流->DAC数据比例	0.1R电阻
+	up_spr(200);							//电机步进数据		默认200
+	sdb = 32;								//每步细分数		默认32
+	dir_pm = true;							//旋转方向			默认正转
+	t_pm = 4.72f;							//力矩->电流		默认1.7A->0.36Nm
+	drive_module = Drive_Module_Standard;	//驱动模组			默认标准版驱动模组(A4950)
+	//iu_pm = 1.0f;		//电流->DAC数据比例	0.1R电阻
 	//控制实体
 	PID_Empty(&pgv_pid);
 	pgv_pid.Kp = 15.0f;
@@ -103,10 +115,8 @@ Controller::Controller()
 	step_count = 0;							//记录输入脉冲数
 	circle_count = 0;						//旋转圈数
 	up_st = false;							//标准化指令
-	call_enabled = true;					//回调使能
-	out_stop = false;						//停止输出
 	//输入输出
-	start_p = 0.0f;												//记录启动位置
+	enread = 0;													//编码器数据
 	last_sensor_p = 0.0f;										//记录传感器原始
 	last_read_p = 0.0f;											//记录读取原始
 	last_filter_gpv = last_filter_p = last_filter_v = 0.0f;		//记录滤波数据
@@ -132,27 +142,34 @@ void Controller::up_spr(uint32_t _spr)
 }
 
 //
-//	控制器配置
-//
-void Controller::Config(Controller_Config_TypeDef *config)
-{
-	//实例指针
-	dac = config->_dac;
-	encode = config->_encode;
-	in1_port = config->_in1_port;	in2_port = config->_in2_port;	in3_port = config->_in3_port;	in4_port = config->_in4_port;
-	in1_pin = config->_in1_pin;		in2_pin = config->_in2_pin;		in3_pin = config->_in3_pin;		in4_pin = config->_in4_pin;
-}
-
-//
 //  控制器启动
 //
 void Controller::Start(void)
 {
+	PhaseOut_S(0, 0.5f);
+	HAL_Delay(200);
+	
 	uint16_t enread;
-	if(!encode->ReadEncoderData(&enread))
+	if(!encode.ReadSmoothingEncoderData(&enread))
 	    return;
-	start_p = CTA[enread];
-	goal_p = last_sensor_p = sensor_p = start_p;
+	goal_p = last_sensor_p = sensor_p = CTA[enread];	//启动位置设置为目标位置
+	Data_conv_DtP();									//获得起始脉冲数
+}
+
+//
+//  数据变换PtD
+//
+void Controller::Data_conv_PtD(void)
+{
+	goal_p = (float)step_count / (float)(spr * sdb) * 360.0f;
+}
+
+//
+//  数据变换DtP
+//
+void Controller::Data_conv_DtP(void)
+{
+	step_count = goal_p * (float)(spr * sdb) / 360.0f;		
 }
 
 //
@@ -197,34 +214,24 @@ void Controller::Debug_new_goal(void)
 			goal_v = 2000.0f * sin3600[count] / sin3600_max;
 		}
 	}
+	import_mode = Import_Mode_Digital;
 }
 
 //
 //	控制回调函数
 //
 void Controller::Callback(void)
-{
-	//Debug_new_goal();
-
-	//退出
-	if(!call_enabled)
-		return;
-	if(out_stop)
-	{
-		PhaseOut_Stop();
-		return;
-	}
-
+{	
 	//获取脉冲目标
 	if(Import_Mode_Pulse == import_mode)
 	{
-		goal_p = start_p + (float)step_count / (float)(spr * sdb) *360.0f;
+		Data_conv_PtD();
 	}
+	//Debug_new_goal();
 	
 	//读取编码器数据/角度回环
-	___TEST2_H;
 	uint16_t enread;
-	if(!encode->ReadEncoderData(&enread))
+	if(!encode.ReadEncoderData(&enread))
 		return;
 	//读取角度
 	last_sensor_p = sensor_p;
@@ -234,11 +241,9 @@ void Controller::Callback(void)
 	else if((sensor_p - last_sensor_p) < -180.0f)	circle_count += 1;
 	last_read_p = read_p;
 	read_p = sensor_p + 360.0f * (float)circle_count;
-	___TEST2_L;
 
 	//滤波
-	___TEST2_H;
-	//滤波位置速度
+	//滤波估算的目标速度
 	last_filter_gpv	= filter_gpv;
 	filter_gpv = gpvLPFa * filter_gpv + gpvLPFb * (goal_p - last_goal_p) * Controller_Freq;
 	//滤波位置
@@ -249,17 +254,19 @@ void Controller::Callback(void)
 	filter_v = vLPFa * filter_v + vLPFb * (read_p - last_read_p) * Controller_Freq;
 	//滤波加速度
 	filter_a = (filter_v - last_filter_v) * Controller_Freq;
-	___TEST2_L;
-	
-	//Kalman
-	//kalman(&read_p, &filter_p, &filter_v);//时间过长
 	
 	//控制环
-	___TEST2_H;
 	if(Control_Mode_PosiVelo == control_mode)//二阶角位置模式(位置部分)
 	{
-		//此控制模式在商业版中完整编写(可自行编辑与调试)
-		PhaseOut_Stop();
+		pgv_pid.error_l = pgv_pid.error;
+		pgv_pid.error = (goal_p - read_p);
+		if(pgv_pid.error > 360.0f)			pgv_pid.error = 360.0f;
+		else if(pgv_pid.error < -360.0f)		pgv_pid.error = -360.0f;
+		pgv_pid.OUTp = pgv_pid.Kp * pgv_pid.error;							//Kp
+		pgv_pid.OUTi += pgv_pid.Ki * pgv_pid.error / Controller_Freq;		//Ki
+		pgv_pid.OUTd = pgv_pid.Kd * (pgv_pid.error - pgv_pid.error_l);		//Kd
+		pgv_pid.OUTq = pgv_pid.Kq * filter_gpv;								//Kq
+		goal_v = pgv_pid.OUTp + pgv_pid.OUTi + pgv_pid.OUTd + pgv_pid.OUTq;
 	}
 
 	if(Control_Mode_Position == control_mode)//角位置模式
@@ -268,44 +275,29 @@ void Controller::Callback(void)
 		p_pid.error = (goal_p - read_p);
 		if(p_pid.error > 360.0f)		p_pid.error = 360.0f;
 		else if(p_pid.error < -360.0f)	p_pid.error = -360.0f;
-
 		p_pid.OUTp = p_pid.Kp * p_pid.error;								//Kp
 		p_pid.OUTi += p_pid.Ki * p_pid.error / Controller_Freq;				//Ki
 		p_pid.OUTd = p_pid.Kd * (p_pid.error - p_pid.error_l);				//Kd
-		if(p_pid.OUTp > 0.36f)			p_pid.OUTp = 0.36f;	
-		else if(p_pid.OUTp < -0.36f)	p_pid.OUTp = -0.36f;
-		if(p_pid.OUTi > 0.36f)			p_pid.OUTi = 0.36f;
-		else if(p_pid.OUTi < -0.36f)	p_pid.OUTi = -0.36f;
-		if(p_pid.OUTd > 0.36f)			p_pid.OUTd = 0.36f;
-		else if(p_pid.OUTd < -0.36f)	p_pid.OUTd = -0.36f;
-
+		if(p_pid.OUTi > 0.3f)			p_pid.OUTi = 0.3f;
+		else if(p_pid.OUTi < -0.3f)		p_pid.OUTi = -0.3f;
 		goal_t = p_pid.OUTp + p_pid.OUTi + p_pid.OUTd;
 	}
 
-	if(Control_Mode_Velocity == control_mode)//角速度模式
+	if((Control_Mode_Velocity == control_mode) || (Control_Mode_PosiVelo == control_mode))//角速度模式
 	{
 		v_pid.error_l = v_pid.error;
 		v_pid.error = (goal_v - filter_v);
-		// if(v_pid.error > 360.0f)		v_pid.error = 360.0f;			
-		// else if(v_pid.error < -360.0f)	v_pid.error = -360.0f;
-
 		// 积分分离 (某些应用不能使用分离)
 		if((v_pid.overshoot) && (v_pid.error_l * v_pid.error <= 0.0f))
 		{
 			v_pid.OUTi = 0.0f;
 			v_pid.overshoot = false;
 		}
-
 		v_pid.OUTp = v_pid.Kp * v_pid.error;							//Kp
 		v_pid.OUTi += v_pid.Ki * v_pid.error / Controller_Freq;			//Ki
 		v_pid.OUTd = -v_pid.Kd * filter_a;								//Kd
-		if(v_pid.OUTp > 0.36f)			v_pid.OUTp = 0.36f;
-		else if(v_pid.OUTp < -0.36f)	v_pid.OUTp = -0.36f;
-		if(v_pid.OUTi > 0.36f)			{v_pid.OUTi = 0.36f;v_pid.overshoot = true;}
-		else if(v_pid.OUTi < -0.36f)	{v_pid.OUTi = -0.36f;v_pid.overshoot = true;}
-		if(v_pid.OUTd > 0.36f)			v_pid.OUTd = 0.36f;
-		else if(v_pid.OUTd < -0.36f)	v_pid.OUTd = -0.36f;
-
+		if(v_pid.OUTi > 0.3f)			{v_pid.OUTi = 0.3f;v_pid.overshoot = true;}
+		else if(v_pid.OUTi < -0.3f)		{v_pid.OUTi = -0.3f;v_pid.overshoot = true;}
 		goal_t = (v_pid.OUTp + v_pid.OUTi + v_pid.OUTd);
 	}
 
@@ -313,12 +305,17 @@ void Controller::Callback(void)
 	{
 		// goal_t = goal_t;
 	}
-	___TEST2_L;
+	
+	if(Control_Mode_Disable == control_mode)//失能模式
+	{
+		PhaseOut_Stop();
+		return;
+	}
 	
 	//输出电流
 	out_i = t_pm * goal_t;
-	if(out_i > 1.8f)    out_i = 1.8f;
-	if(out_i < -1.8f)   out_i = -1.8f;
+	if(out_i > 15.0f)    out_i = 15.0f;
+	if(out_i < -15.0f)   out_i = -15.0f;
 
 	//相位控制
 	if(out_i > 0.0f)		out_p = sensor_p + esa;		//叠加超前角
@@ -327,9 +324,7 @@ void Controller::Callback(void)
 	else if(out_p < 0.0f)	out_p += 360.0f;
 	
 	//相位输出
-	___TEST2_H;
 	PhaseOut_A(out_p, fabs(out_i));
-	___TEST2_L;
 
 	//保存数据
 	last_goal_p		= goal_p;
@@ -356,39 +351,44 @@ bool Controller::Standardizing(void)
 	float angle;                          //输出角
 	bool dir;                             //数据方向
 
-	//暂停控制
-	call_enabled = false;
-
 	//Go
 	PhaseOut_S(0, 0.5f);
 	HAL_Delay(1000);
-	if(!encode->ReadSmoothingEncoderData(&EncodeData[0]))
+	if(!encode.ReadSmoothingEncoderData(&EncodeData[0]))
 		return false;
 
-	//读取标准200步电机一周数据,自动寻找电机步进角在商业版中完整编写(可自行编辑与调试)
-	for(; Bstep<201; Bstep++)
+	//自动寻找并读取电机一周数据
+	const uint32_t TSN_NUM = 3;
+	const uint32_t TSN[TSN_NUM] = {100, 200, 400};
+	//const float TSA[TSN_NUM] = {3.6f, 1.8f, 0.9f};
+	Bstep=1;
+	for(count=0;;)
 	{
-		PhaseOut_S(Bstep, 0.5f);
-		HAL_Delay(250);
-		if(!encode->ReadSmoothingEncoderData(&EncodeData[Bstep]))    //读取编码器滤波数据
+		for(; Bstep<TSN[count]+1; Bstep++)
+		{
+			PhaseOut_S(Bstep, 0.5f);
+			HAL_Delay(250);
+			if(!encode.ReadSmoothingEncoderData(&EncodeData[Bstep]))    //读取编码器滤波数据
+			{
+				PhaseOut_S(0, 0.0f);
+				return false;
+			}
+		}
+		sub_data = EncodeData[Bstep-1] - EncodeData[0];
+		if(sub_data > AS5048_DPI/2)			sub_data -= AS5048_DPI;
+		else if(sub_data < -AS5048_DPI/2)	sub_data += AS5048_DPI;
+		if((sub_data > -AS5048_DPI/(Bstep-1)) && (sub_data < AS5048_DPI/(Bstep-1)))
+		{
+			spr = TSN[count];
+			map = (float)(sin3600_num * spr / 360 / 4);
+			esa = 360.0f / (float)spr;		//esa = TSA[count];
+			break;
+		}
+		if(++count >= TSN_NUM)
 		{
 			PhaseOut_S(0, 0.0f);
 			return false;
 		}
-	}
-	sub_data = EncodeData[Bstep-1] - EncodeData[0];
-	if(sub_data > AS5048_DPI/2)			sub_data -= AS5048_DPI;
-	else if(sub_data < -AS5048_DPI/2)	sub_data += AS5048_DPI;
-	if((sub_data > -AS5048_DPI/(Bstep-1)) && (sub_data < AS5048_DPI/(Bstep-1)))
-	{
-		spr = 200;
-		map = (float)(sin3600_num * spr / 360 / 4);
-		esa = 360.0f / (float)spr;
-	}
-	else
-	{
-		PhaseOut_S(0, 0.0f);
-		return false;
 	}
 	PhaseOut_S(0, 0.0f);
 
@@ -514,8 +514,6 @@ bool Controller::Standardizing(void)
 	}
 	CTA_End();
 
-	//恢复控制
-	call_enabled = true;
 	return true;
 }
 
@@ -524,9 +522,27 @@ bool Controller::Standardizing(void)
 //
 void Controller::PhaseOut_Stop(void)
 {
-	HAL_DAC_SetValue(dac, DAC_CHANNEL_1, DAC_ALIGN_12B_R, 0);
-	HAL_DAC_SetValue(dac, DAC_CHANNEL_2, DAC_ALIGN_12B_R, 0);
-	in1_l(); in2_l();in3_l(); in4_l();
+	drive_a_Analog(0);
+	drive_b_Analog(0);
+	
+	if(drive_module == Drive_Module_Standard)
+	{
+		//标准版驱动模组
+		drive_a2_l();
+		drive_a3_l();
+		drive_b2_l();
+		drive_b3_l();
+	}
+	else if(drive_module == Drive_Module_Power)
+	{
+		//动力版驱动模组
+		drive_a1_l();
+		drive_a2_l();
+		drive_a3_l();
+		drive_b1_l();
+		drive_b2_l();
+		drive_b3_l();
+	}
 }
 
 //
@@ -550,21 +566,40 @@ void Controller::PhaseOut_A(float a, float i)
 	//	arm_abs_q31(&sin_a, &sin_a_abs, 1);
 	//	arm_abs_q31(&sin_b, &sin_b_abs, 1);
 	//获得电压
-	u = i * iu_pm;
+	if(drive_module == Drive_Module_Standard)
+		u = i;
+	else if(drive_module == Drive_Module_Power)
+		u = i * 0.2f;
 	if(u > 3.3f)	u = 3.3f;
 	reg = (uint32_t)(u / 3.3f * 4095.0f);
 	if(reg > 4095)	reg = 4095;
 	reg_a = reg * sin_a_abs / sin3600_max;
 	reg_b = reg * sin_b_abs / sin3600_max;
 	//Out
-	HAL_DAC_SetValue(dac, DAC_CHANNEL_1, DAC_ALIGN_12B_R, reg_a);
-	HAL_DAC_SetValue(dac, DAC_CHANNEL_2, DAC_ALIGN_12B_R, reg_b);
-	if(sin_a > 0)		{in1_h(); in2_l();}
-	else if(sin_a < 0)	{in1_l(); in2_h();}
-	else				{in1_h(); in2_h();}
-	if(sin_b > 0)		{in3_h(); in4_l();}
-	else if(sin_b < 0)	{in3_l(); in4_h();}
-	else				{in3_h(); in4_h();}
+	drive_a_Analog(reg_a);
+	drive_b_Analog(reg_b);
+	
+	if(drive_module == Drive_Module_Standard)
+	{
+		//标准版驱动模组
+		if(sin_a > 0)		{drive_a3_h(); drive_a2_l();}
+		else if(sin_a < 0)	{drive_a3_l(); drive_a2_h();}
+		else				{drive_a3_h(); drive_a2_h();}
+		if(sin_b > 0)		{drive_b3_h(); drive_b2_l();}
+		else if(sin_b < 0)	{drive_b3_l(); drive_b2_h();}
+		else				{drive_b3_h(); drive_b2_h();}
+	}
+	else if(drive_module == Drive_Module_Power)
+	{
+		//动力版驱动模组
+		if(sin_a > 0)		{drive_a1_h(); drive_a2_h(); drive_a3_h();}
+		else if(sin_a < 0)	{drive_a1_h(); drive_a2_h(); drive_a3_l();}
+		else				{drive_a1_h(); drive_a2_l(); drive_a3_l();}
+		if(sin_b > 0)		{drive_b1_h(); drive_b2_h(); drive_b3_h();}
+		else if(sin_b < 0)	{drive_b1_h(); drive_b2_h(); drive_b3_l();}
+		else				{drive_b1_h(); drive_b2_l(); drive_b3_l();}
+	
+	}
 }
 
 //
@@ -588,19 +623,36 @@ void Controller::PhaseOut_S(uint32_t s, float i)
 	//	arm_abs_q31(&sin_a, &sin_a_abs, 1);
 	//	arm_abs_q31(&sin_b, &sin_b_abs, 1);
 	//获得电压
-	u = i * iu_pm;
+	if(drive_module == Drive_Module_Standard)
+		u = i;
+	else if(drive_module == Drive_Module_Power)
+		u = i * 0.2f;
 	reg = (uint16_t)(u / 3.3f * 4095.0f);
 	if(reg > 4095)	reg = 4095;
 	reg_a = reg * sin_a_abs / sin4_max;
 	reg_b = reg * sin_b_abs / sin4_max;
 	//Out
-	HAL_DAC_SetValue(dac, DAC_CHANNEL_1, DAC_ALIGN_12B_R, reg_a);
-	HAL_DAC_SetValue(dac, DAC_CHANNEL_2, DAC_ALIGN_12B_R, reg_b);
-	if(sin_a > 0)		{in1_h(); in2_l();}
-	else if(sin_a < 0)	{in1_l(); in2_h();}
-	else				{in1_h(); in2_h();}
-	if(sin_b > 0)		{in3_h(); in4_l();}
-	else if(sin_b < 0)	{in3_l(); in4_h();}
-	else				{in3_h(); in4_h();}
+	drive_a_Analog(reg_a);
+	drive_b_Analog(reg_b);
+	if(drive_module == Drive_Module_Standard)
+	{
+		//标准版驱动模组
+		if(sin_a > 0)		{drive_a3_h(); drive_a2_l();}
+		else if(sin_a < 0)	{drive_a3_l(); drive_a2_h();}
+		else				{drive_a3_h(); drive_a2_h();}
+		if(sin_b > 0)		{drive_b3_h(); drive_b2_l();}
+		else if(sin_b < 0)	{drive_b3_l(); drive_b2_h();}
+		else				{drive_b3_h(); drive_b2_h();}
+	}
+	else if(drive_module == Drive_Module_Power)
+	{
+		//动力版驱动模组
+		if(sin_a > 0)		{drive_a1_h(); drive_a2_h(); drive_a3_h();}
+		else if(sin_a < 0)	{drive_a1_h(); drive_a2_h(); drive_a3_l();}
+		else				{drive_a1_h(); drive_a2_l(); drive_a3_l();}
+		if(sin_b > 0)		{drive_b1_h(); drive_b2_h(); drive_b3_h();}
+		else if(sin_b < 0)	{drive_b1_h(); drive_b2_h(); drive_b3_l();}
+		else				{drive_b1_h(); drive_b2_l(); drive_b3_l();}
+	}
 }
 

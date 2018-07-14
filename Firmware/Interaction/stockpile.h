@@ -22,13 +22,14 @@
 #ifndef STOCKPILE_H
 #define STOCKPILE_H
 
-#include <stdint.h>
-
-#define Stockpile_Versions	0x00000003
-
 #ifdef __cplusplus
 extern "C" {
 #endif
+	
+#include <stdint.h>
+#include <stdbool.h>
+	
+#define Stockpile_Versions	0x00000005
 
 //CTA
 void CTA_Empty(void);

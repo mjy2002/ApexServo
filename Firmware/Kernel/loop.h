@@ -22,22 +22,23 @@
 #ifndef LOOP_H
 #define LOOP_H
 
+#ifdef __cplusplus
+ extern "C" {
+#endif
+
 #include <stdint.h>
 
 //引用的实例
 #include "stm32f1xx_hal.h"
 
-#ifdef __cplusplus
- extern "C" {
-#endif
-
 void loop(void);
 	 
+//STM32中断向量函数，必须使用C形式声明
 void TIM1_UP_IRQHandler(void);
-void EXTI9_5_IRQHandler(void);
-//void TIM2_IRQHandler(void);
+void EXTI0_IRQHandler(void);
+void EXTI1_IRQHandler(void);
+void EXTI2_IRQHandler(void);
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart);
-//void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim);
 	 
 #ifdef __cplusplus
 }

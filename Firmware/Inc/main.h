@@ -49,41 +49,45 @@
 
 /* Private define ------------------------------------------------------------*/
 
-#define KEY1_Pin GPIO_PIN_13
-#define KEY1_GPIO_Port GPIOC
-#define KEY2_Pin GPIO_PIN_14
-#define KEY2_GPIO_Port GPIOC
-#define KEY3_Pin GPIO_PIN_15
-#define KEY3_GPIO_Port GPIOC
-#define A4954_IN4_Pin GPIO_PIN_0
-#define A4954_IN4_GPIO_Port GPIOA
-#define A4954_IN3_Pin GPIO_PIN_1
-#define A4954_IN3_GPIO_Port GPIOA
-#define A4954_IN2_Pin GPIO_PIN_2
-#define A4954_IN2_GPIO_Port GPIOA
-#define A4954_IN1_Pin GPIO_PIN_3
-#define A4954_IN1_GPIO_Port GPIOA
-#define TEST_2_Pin GPIO_PIN_4
-#define TEST_2_GPIO_Port GPIOC
-#define TEST_1_Pin GPIO_PIN_5
-#define TEST_1_GPIO_Port GPIOC
+#define DSA1_Pin GPIO_PIN_13
+#define DSA1_GPIO_Port GPIOC
+#define DSA2_Pin GPIO_PIN_14
+#define DSA2_GPIO_Port GPIOC
+#define DSA3_Pin GPIO_PIN_15
+#define DSA3_GPIO_Port GPIOC
+#define EN_IN_Pin GPIO_PIN_0
+#define EN_IN_GPIO_Port GPIOC
+#define EN_IN_EXTI_IRQn EXTI0_IRQn
+#define DIR_IN_Pin GPIO_PIN_1
+#define DIR_IN_GPIO_Port GPIOC
+#define DIR_IN_EXTI_IRQn EXTI1_IRQn
+#define LED2_Pin GPIO_PIN_0
+#define LED2_GPIO_Port GPIOA
+#define LED1_Pin GPIO_PIN_1
+#define LED1_GPIO_Port GPIOA
+#define S1_Pin GPIO_PIN_2
+#define S1_GPIO_Port GPIOA
+#define DSB3_Pin GPIO_PIN_3
+#define DSB3_GPIO_Port GPIOA
+#define DSB2_Pin GPIO_PIN_6
+#define DSB2_GPIO_Port GPIOA
+#define DSB1_Pin GPIO_PIN_7
+#define DSB1_GPIO_Port GPIOA
+#define S2_Pin GPIO_PIN_4
+#define S2_GPIO_Port GPIOC
+#define S3_Pin GPIO_PIN_5
+#define S3_GPIO_Port GPIOC
 #define OLED_RES_Pin GPIO_PIN_0
 #define OLED_RES_GPIO_Port GPIOB
 #define OLED_DC_Pin GPIO_PIN_1
 #define OLED_DC_GPIO_Port GPIOB
-#define OLED_CS_Pin GPIO_PIN_12
-#define OLED_CS_GPIO_Port GPIOB
-#define STEP_Pin GPIO_PIN_6
-#define STEP_GPIO_Port GPIOC
-#define STEP_EXTI_IRQn EXTI9_5_IRQn
-#define DIR_Pin GPIO_PIN_7
-#define DIR_GPIO_Port GPIOC
-#define AS5048A_CS_Pin GPIO_PIN_15
-#define AS5048A_CS_GPIO_Port GPIOA
-#define LED2_Pin GPIO_PIN_8
-#define LED2_GPIO_Port GPIOB
-#define LED1_Pin GPIO_PIN_9
-#define LED1_GPIO_Port GPIOB
+#define OLED_NSS_Pin GPIO_PIN_12
+#define OLED_NSS_GPIO_Port GPIOB
+#define AS5048A_NSS_Pin GPIO_PIN_15
+#define AS5048A_NSS_GPIO_Port GPIOA
+#define STEP_IN_Pin GPIO_PIN_2
+#define STEP_IN_GPIO_Port GPIOD
+#define STEP_IN_EXTI_IRQn EXTI2_IRQn
 
 /* ########################## Assert Selection ############################## */
 /**
@@ -93,10 +97,8 @@
 /* #define USE_FULL_ASSERT    1U */
 
 /* USER CODE BEGIN Private defines */
-#define	___TEST1_H	TEST_1_GPIO_Port->BSRR = TEST_1_Pin;
-#define	___TEST1_L	TEST_1_GPIO_Port->BSRR = (uint32_t)TEST_1_Pin << 16U;
-#define	___TEST2_H	TEST_2_GPIO_Port->BSRR = TEST_2_Pin;
-#define	___TEST2_L	TEST_2_GPIO_Port->BSRR = (uint32_t)TEST_2_Pin << 16U;
+#define Quick_GPIO_H(GPIOx, GPIO_Pin)   GPIOx->BSRR = GPIO_Pin
+#define Quick_GPIO_L(GPIOx, GPIO_Pin)   GPIOx->BSRR = (uint32_t)GPIO_Pin << 16U
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus

@@ -22,42 +22,42 @@
 #ifndef USART_TXRX_H
 #define USART_TXRX_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdint.h>		//数据标准规范
+#include <stdbool.h>
 
 //C语言基本库
 #include <stdio.h>		//基本输入输出
 #include <stdlib.h>		//基础库
 #include <string.h>		//字符串
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /*********************************************************************/
 /**************************    公开数据    ***************************/
 /*********************************************************************/
 #include "stm32f1xx_hal.h"
-extern uint16_t uart3_tx_size;
-extern char uart3_tx_buff[129];
-extern char uart3_rx_buff[129];
-extern UART_HandleTypeDef huart3;
+extern uint16_t uart_tx_size;
+extern char uart_tx_buff[129];
+extern char uart_rx_buff[129];
 	
 /*********************************************************************/
 /****************************    发送    ******************************/
 /*********************************************************************/
-void SerialPort3_Send_0x32(uint32_t data);
-void SerialPort3_Send_float(float data);
-void SerialPort3_Send_string(char *spr);
-void SerialPort3_Send_TX(void);						//直接发送tx_buff
-bool SerialPort3_Refer_TX_Leisure(void);			//查询发送是否空闲
+void SerialPort_Send_0x32(uint32_t data);
+void SerialPort_Send_float(float data);
+void SerialPort_Send_string(char *spr);
+void SerialPort_Send_TX(void);					//直接发送tx_buff
+bool SerialPort_Refer_TX_Leisure(void);		//查询发送是否空闲
 
 /*********************************************************************/
 /****************************    接收    ******************************/
 /*********************************************************************/
-#define Receive_End_RandN	0x00U									//使用R&N结尾
-#define	Receive_End_RorN	0x01U										//使用R/N结尾
+#define Receive_End_RandN	0x00U					//使用R&N结尾
+#define	Receive_End_RorN	0x01U					//使用R/N结尾
 #define	Receive_End			Receive_End_RorN
-#define Standard_USART_Receive_Buff_Max		64	//接收缓冲区大小
+#define Standard_USART_Receive_Buff_Max		64		//接收缓冲区大小
 
 //接收过程状态枚举
 typedef enum{

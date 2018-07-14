@@ -1,14 +1,24 @@
 # ApexServo
 
-![image](Image/ApexServo.jpg)
+![image](Image/Logic_Standard.JPG)
+![image](Image/Logic_Industry.JPG)
+![image](Image/Drive_Standard.JPG)
+![image](Image/Drive_Power.JPG)
 
-# 版本更新日志
+# V1.1固件版本更新日志
+
+修复了上一版本固件配置不完善导致的电机电流控制异常(表像：电机振动)
+
+增加了UI界面，显示实时数据和编码器校准界面
+
+调整了控制算法流程
 
 
 # 如何编译
 开发环境为Keil_MDK V5.25.2.0
 
 # 如何下载固件
+
 PCB预留SWD接口可用于程序的下载与调试
 
 # 如何校准编码器

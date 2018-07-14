@@ -21,6 +21,17 @@
 
 #include "AS5048.h"
 
+//STM32
+#include "main.h"
+#include "stm32f1xx_hal.h"
+
+//引用的外部定义及其引用方式
+extern SPI_HandleTypeDef hspi1;
+#define as5048_spi_tyd	hspi1
+#define as5048_cs_h()	Quick_GPIO_H(AS5048A_NSS_GPIO_Port, AS5048A_NSS_Pin)
+#define as5048_cs_l()	Quick_GPIO_L(AS5048A_NSS_GPIO_Port, AS5048A_NSS_Pin)
+
+
 //SPI Communication Command Package
 //Every command sent to the AS5048A is represented with the following layout
 //PAR - Parity bit (EVEN)
@@ -46,13 +57,6 @@
 #define AS5048_SPI_Magnitude	(0x3FFE)
 #define AS5048_SPI_Angle		(0x3FFF)
 
-
-#define gpio_h(GPIOx, GPIO_Pin)		GPIOx->BSRR = GPIO_Pin						// The migration needs to be changed.
-#define gpio_l(GPIOx, GPIO_Pin)		GPIOx->BSRR = (uint32_t)GPIO_Pin << 16U		// The migration needs to be changed.
-#define cs_h()	gpio_h(cs_port, cs_pin)
-#define cs_l()	gpio_l(cs_port, cs_pin)
-
-
 //
 //	奇偶校验
 //
@@ -69,16 +73,6 @@ static uint16_t getParity(uint16_t data)
 	}
 	bits = bits & 0x0001;
 	return bits;
-}
-
-//
-//	编码器配置
-//
-void AS5048::Config(AS5048_Config_TypeDef *config)
-{
-	spi = config->_spi;
-	cs_port = config->_cs_port;
-	cs_pin = config->_cs_pin;
 }
 
 //
@@ -126,17 +120,17 @@ bool AS5048::ReadAddress(uint16_t addr, uint16_t *data)
 	if(getParity(addr))
 		addr = addr | (0x8000);
 
-	cs_l();
-	flag = HAL_SPI_TransmitReceive(spi, (uint8_t*)&addr, (uint8_t*)&temp_data, 1, 1000000);
-	cs_h();
+	as5048_cs_l();
+	flag = HAL_SPI_TransmitReceive(&as5048_spi_tyd, (uint8_t*)&addr, (uint8_t*)&temp_data, 1, 1000000);
+	as5048_cs_h();
 	if(HAL_OK != flag)		return false;
 
 	for(uint16_t i=10; i>0 ;i--){};
 		
 	temp_data = 0;
-	cs_l();
-	flag = HAL_SPI_TransmitReceive(spi, (uint8_t*)&temp_data, (uint8_t*)&read_data, 1, 1000000);
-	cs_h();
+	as5048_cs_l();
+	flag = HAL_SPI_TransmitReceive(&as5048_spi_tyd, (uint8_t*)&temp_data, (uint8_t*)&read_data, 1, 1000000);
+	as5048_cs_h();
 	if(HAL_OK != flag)		return false;
 
 	//检查R

@@ -22,16 +22,16 @@
 #ifndef IS_H
 #define IS_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdint.h>		//数据标准规范
 
 //C语言基本库
 #include <stdio.h>           //基本输入输出
 #include <stdlib.h>        //基础库
 #include <string.h>        //字符串
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 void IS_IN(char *str);				//IS指令系统输入	推荐不要直接使用
 void IS_Discern(void);				//IS扫描

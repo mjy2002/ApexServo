@@ -134,11 +134,11 @@
             <RunIndependent>0</RunIndependent>
             <UpdateFlashBeforeDebugging>1</UpdateFlashBeforeDebugging>
             <Capability>1</Capability>
-            <DriverSelection>4101</DriverSelection>
+            <DriverSelection>4107</DriverSelection>
           </Flash1>
           <bUseTDR>1</bUseTDR>
           <Flash2>STLink\ST-LINKIII-KEIL_SWO.dll</Flash2>
-          <Flash3>"" ()</Flash3>
+          <Flash3></Flash3>
           <Flash4></Flash4>
           <pFcarmOut></pFcarmOut>
           <pFcarmGrp></pFcarmGrp>
@@ -187,7 +187,7 @@
             <hadIRAM2>0</hadIRAM2>
             <hadIROM2>0</hadIROM2>
             <StupSel>8</StupSel>
-            <useUlib>1</useUlib>
+            <useUlib>0</useUlib>
             <EndSel>0</EndSel>
             <uLtcg>0</uLtcg>
             <nSecure>0</nSecure>
@@ -311,7 +311,7 @@
           </ArmAdsMisc>
           <Cads>
             <interw>1</interw>
-            <Optim>3</Optim>
+            <Optim>4</Optim>
             <oTime>0</oTime>
             <SplitLS>0</SplitLS>
             <OneElfS>1</OneElfS>
@@ -337,7 +337,7 @@
               <MiscControls>--cpp11;</MiscControls>
               <Define>USE_HAL_DRIVER,STM32F103xE,ARM_MATH_CM3</Define>
               <Undefine></Undefine>
-              <IncludePath>../Inc;../Drivers/STM32F1xx_HAL_Driver/Inc;../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy;../Drivers/CMSIS/Device/ST/STM32F1xx/Include;../Drivers/CMSIS/Include;..\Interaction;..\Kernel</IncludePath>
+              <IncludePath>../Inc;          ../Drivers/STM32F1xx_HAL_Driver/Inc;          ../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy;          ../Drivers/CMSIS/Device/ST/STM32F1xx/Include;          ../Drivers/CMSIS/Include;          ..\Interaction;          ..\Kernel</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -442,11 +442,6 @@
               <FilePath>../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_spi_ex.c</FilePath>
             </File>
             <File>
-              <FileName>stm32f1xx_hal_pcd_ex.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_pcd_ex.c</FilePath>
-            </File>
-            <File>
               <FileName>stm32f1xx_hal_gpio_ex.c</FileName>
               <FileType>1</FileType>
               <FilePath>../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_gpio_ex.c</FilePath>
@@ -477,19 +472,9 @@
               <FilePath>../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_cortex.c</FilePath>
             </File>
             <File>
-              <FileName>stm32f1xx_hal_pcd.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_pcd.c</FilePath>
-            </File>
-            <File>
               <FileName>stm32f1xx_hal_tim.c</FileName>
               <FileType>1</FileType>
               <FilePath>../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_tim.c</FilePath>
-            </File>
-            <File>
-              <FileName>stm32f1xx_ll_usb.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_ll_usb.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -527,29 +512,44 @@
           <GroupName>Interaction</GroupName>
           <Files>
             <File>
-              <FileName>Button.cpp</FileName>
+              <FileName>button.cpp</FileName>
               <FileType>8</FileType>
-              <FilePath>..\Interaction\Button.cpp</FilePath>
+              <FilePath>..\Interaction\button.cpp</FilePath>
             </File>
             <File>
-              <FileName>Button.h</FileName>
+              <FileName>button.h</FileName>
               <FileType>5</FileType>
-              <FilePath>..\Interaction\Button.h</FilePath>
+              <FilePath>..\Interaction\button.h</FilePath>
             </File>
             <File>
-              <FileName>IS.cpp</FileName>
+              <FileName>is.cpp</FileName>
               <FileType>8</FileType>
-              <FilePath>..\Interaction\IS.cpp</FilePath>
+              <FilePath>..\Interaction\is.cpp</FilePath>
             </File>
             <File>
-              <FileName>IS.h</FileName>
+              <FileName>is.h</FileName>
               <FileType>5</FileType>
-              <FilePath>..\Interaction\IS.h</FilePath>
+              <FilePath>..\Interaction\is.h</FilePath>
             </File>
             <File>
-              <FileName>stockpile.cpp</FileName>
-              <FileType>8</FileType>
-              <FilePath>..\Interaction\stockpile.cpp</FilePath>
+              <FileName>oled.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Interaction\oled.c</FilePath>
+            </File>
+            <File>
+              <FileName>oled.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\Interaction\oled.h</FilePath>
+            </File>
+            <File>
+              <FileName>oled_form.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\Interaction\oled_form.h</FilePath>
+            </File>
+            <File>
+              <FileName>stockpile.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Interaction\stockpile.c</FilePath>
             </File>
             <File>
               <FileName>stockpile.h</FileName>
@@ -557,9 +557,19 @@
               <FilePath>..\Interaction\stockpile.h</FilePath>
             </File>
             <File>
-              <FileName>usart_txrx.cpp</FileName>
+              <FileName>ui.cpp</FileName>
               <FileType>8</FileType>
-              <FilePath>..\Interaction\usart_txrx.cpp</FilePath>
+              <FilePath>..\Interaction\ui.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>ui.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\Interaction\ui.h</FilePath>
+            </File>
+            <File>
+              <FileName>usart_txrx.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Interaction\usart_txrx.c</FilePath>
             </File>
             <File>
               <FileName>usart_txrx.h</FileName>
@@ -572,14 +582,14 @@
           <GroupName>Kernel</GroupName>
           <Files>
             <File>
-              <FileName>AS5048.cpp</FileName>
+              <FileName>as5048.cpp</FileName>
               <FileType>8</FileType>
-              <FilePath>..\Kernel\AS5048.cpp</FilePath>
+              <FilePath>..\Kernel\as5048.cpp</FilePath>
             </File>
             <File>
-              <FileName>AS5048.h</FileName>
+              <FileName>as5048.h</FileName>
               <FileType>5</FileType>
-              <FilePath>..\Kernel\AS5048.h</FilePath>
+              <FilePath>..\Kernel\as5048.h</FilePath>
             </File>
             <File>
               <FileName>controller.cpp</FileName>
@@ -610,6 +620,16 @@
         </Group>
         <Group>
           <GroupName>DSP_Lib_152</GroupName>
+          <Files>
+            <File>
+              <FileName>arm_cortexM3l_math.lib</FileName>
+              <FileType>4</FileType>
+              <FilePath>..\Lib\DSP\152\arm_cortexM3l_math.lib</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>DSP_Lib_145</GroupName>
           <GroupOption>
             <CommonProperty>
               <UseCPPCompiler>0</UseCPPCompiler>
@@ -683,17 +703,7 @@
             <File>
               <FileName>arm_cortexM3l_math.lib</FileName>
               <FileType>4</FileType>
-              <FilePath>..\Lib\ARM\arm_cortexM3l_math.lib</FilePath>
-            </File>
-          </Files>
-        </Group>
-        <Group>
-          <GroupName>DSP_Lib_145</GroupName>
-          <Files>
-            <File>
-              <FileName>arm_cortexM3l_math.lib</FileName>
-              <FileType>4</FileType>
-              <FilePath>..\Drivers\CMSIS\Lib\ARM\arm_cortexM3l_math.lib</FilePath>
+              <FilePath>..\Lib\DSP\145\arm_cortexM3l_math.lib</FilePath>
             </File>
           </Files>
         </Group>

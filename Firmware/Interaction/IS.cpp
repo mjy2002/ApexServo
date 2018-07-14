@@ -83,7 +83,7 @@ void IS_IN(char *str)
 	uint8_t flag;
 
 	/***********************************   pgv_pid   ***********************************/
-	//
+	//pgvkp
 	cutp = strstr(str, "pgvkp");
 	if(cutp !=NULL){
 		flag = GMcode_Seek_Number(cutp);
@@ -91,7 +91,7 @@ void IS_IN(char *str)
 		else if(flag == Seek_Number_Genre_float)	{control.pgv_pid.Kp = (float)seek_number_float;}
 		return;
 	}	
-	//
+	//pgvki
 	cutp = strstr(str, "pgvki");
 	if(cutp !=NULL){
 		flag = GMcode_Seek_Number(cutp);
@@ -99,7 +99,7 @@ void IS_IN(char *str)
 		else if(flag == Seek_Number_Genre_float)	{control.pgv_pid.Ki = (float)seek_number_float;}
 		return;
 	}	
-	//
+	//pgvkd
 	cutp = strstr(str, "pgvkd");
 	if(cutp !=NULL){
 		flag = GMcode_Seek_Number(cutp);
@@ -107,7 +107,7 @@ void IS_IN(char *str)
 		else if(flag == Seek_Number_Genre_float)	{control.pgv_pid.Kd = (float)seek_number_float;}
 		return;
 	}	
-	//
+	//pgvkq
 	cutp = strstr(str, "pgvkq");
 	if(cutp !=NULL){
 		flag = GMcode_Seek_Number(cutp);
@@ -118,7 +118,7 @@ void IS_IN(char *str)
 
 
 	/***********************************   p_pid   ***********************************/
-	//
+	//pkp
 	cutp = strstr(str, "pkp");
 	if(cutp !=NULL){
 		flag = GMcode_Seek_Number(cutp);
@@ -126,7 +126,7 @@ void IS_IN(char *str)
 		else if(flag == Seek_Number_Genre_float)	{control.p_pid.Kp = (float)seek_number_float;}
 		return;
 	}	
-	//
+	//pki
 	cutp = strstr(str, "pki");
 	if(cutp !=NULL){
 		flag = GMcode_Seek_Number(cutp);
@@ -134,7 +134,7 @@ void IS_IN(char *str)
 		else if(flag == Seek_Number_Genre_float)	{control.p_pid.Ki = (float)seek_number_float;}
 		return;
 	}	
-	//
+	//pkd
 	cutp = strstr(str, "pkd");
 	if(cutp !=NULL){
 		flag = GMcode_Seek_Number(cutp);
@@ -142,7 +142,7 @@ void IS_IN(char *str)
 		else if(flag == Seek_Number_Genre_float)	{control.p_pid.Kd = (float)seek_number_float;}
 		return;
 	}
-	//
+	//pkq
 	cutp = strstr(str, "pkq");
 	if(cutp !=NULL){
 		flag = GMcode_Seek_Number(cutp);
@@ -153,7 +153,7 @@ void IS_IN(char *str)
 
 
 	/***********************************   v_pid   ***********************************/
-	//
+	//vkp
 	cutp = strstr(str, "vkp");
 	if(cutp !=NULL){
 		flag = GMcode_Seek_Number(cutp);
@@ -161,7 +161,7 @@ void IS_IN(char *str)
 		else if(flag == Seek_Number_Genre_float)	{control.v_pid.Kp = (float)seek_number_float;}
 		return;
 	}	
-	//
+	//vki
 	cutp = strstr(str, "vki");
 	if(cutp !=NULL){
 		flag = GMcode_Seek_Number(cutp);
@@ -169,7 +169,7 @@ void IS_IN(char *str)
 		else if(flag == Seek_Number_Genre_float)	{control.v_pid.Ki = (float)seek_number_float;}
 		return;
 	}	
-	//
+	//vkd
 	cutp = strstr(str, "vkd");
 	if(cutp !=NULL){
 		flag = GMcode_Seek_Number(cutp);
@@ -177,7 +177,7 @@ void IS_IN(char *str)
 		else if(flag == Seek_Number_Genre_float)	{control.v_pid.Kd = (float)seek_number_float;}
 		return;
 	}
-	//
+	//vkq
 	cutp = strstr(str, "vkq");
 	if(cutp !=NULL){
 		flag = GMcode_Seek_Number(cutp);
@@ -187,14 +187,14 @@ void IS_IN(char *str)
 	}
 
 	/***********************************   模式目标   ***********************************/
-	//
+	//go_pgv
 	cutp = strstr(str, "go_pgv");
 	if(cutp !=NULL){
 		flag = GMcode_Seek_Number(cutp);
 		control.control_mode = Control_Mode_PosiVelo;
 		if(flag == Seek_Number_Genre_int){
-			control.control_mode = Control_Mode_PosiVelo;
-			control.import_mode = Import_Mode_Digital;
+			control.control_mode = Control_Mode_PosiVelo;	//二阶角位置模式
+			control.import_mode = Import_Mode_Digital;		//数字输入模式
 			control.goal_p = (float)seek_number_int32;
 		}
 		else if(flag == Seek_Number_Genre_float){
@@ -204,7 +204,7 @@ void IS_IN(char *str)
 		}
 		return;
 	}	
-	//
+	//go_p
 	cutp = strstr(str, "go_p");
 	if(cutp !=NULL){
 		flag = GMcode_Seek_Number(cutp);
@@ -220,7 +220,7 @@ void IS_IN(char *str)
 		}
 		return;
 	}	
-	//
+	//go_v
 	cutp = strstr(str, "go_v");
 	if(cutp !=NULL){
 		flag = GMcode_Seek_Number(cutp);
@@ -236,7 +236,7 @@ void IS_IN(char *str)
 		}
 		return;
 	}	
-	//
+	//go_t
 	cutp = strstr(str, "go_t");
 	if(cutp !=NULL){
 		flag = GMcode_Seek_Number(cutp);
@@ -254,7 +254,9 @@ void IS_IN(char *str)
 	}
 
 	/***********************************   控制参数   ***********************************/
-	//
+	//spr
+	//spr禁止通过指令修改,必须使用标准化函数自动识别并储存
+	//sdb
 	cutp = strstr(str, "sdb");
 	if(cutp !=NULL){
 		flag = GMcode_Seek_Number(cutp);
@@ -262,7 +264,7 @@ void IS_IN(char *str)
 		else if(flag == Seek_Number_Genre_float)	{control.sdb = (uint32_t)seek_number_float;}
 		return;
 	}
-	//
+	//dir_pm
 	cutp = strstr(str, "dir_pm");
 	if(cutp !=NULL){
 		flag = GMcode_Seek_Number(cutp);
@@ -270,7 +272,7 @@ void IS_IN(char *str)
 		else if(flag == Seek_Number_Genre_float)	{control.dir_pm = (bool)seek_number_float;}
 		return;
 	}
-	//
+	//t_pm
 	cutp = strstr(str, "t_pm");
 	if(cutp !=NULL){
 		flag = GMcode_Seek_Number(cutp);
@@ -278,61 +280,60 @@ void IS_IN(char *str)
 		else if(flag == Seek_Number_Genre_float)	{control.t_pm = (float)seek_number_float;}
 		return;
 	}	
-	//
-	cutp = strstr(str, "iu_pm");
+	//drive_module
+	cutp = strstr(str, "drive_module");
 	if(cutp !=NULL){
 		flag = GMcode_Seek_Number(cutp);
-		if(flag == Seek_Number_Genre_int)			{control.iu_pm = (float)seek_number_int32;}
-		else if(flag == Seek_Number_Genre_float)	{control.iu_pm = (float)seek_number_float;}
+		if(flag == Seek_Number_Genre_int)			{control.drive_module = (uint32_t)seek_number_int32;}
+		else if(flag == Seek_Number_Genre_float)	{control.drive_module = (uint32_t)seek_number_float;}
 		return;
 	}	
 
 	/***********************************   控制   ***********************************/
-	//
+	//up_st
 	cutp = strstr(str, "up_st");
 	if(cutp !=NULL){
 		control.up_st = true;
-		SerialPort3_Send_string("up_st...\r\n");
+		SerialPort_Send_string("up_st...\r\n");
 		return;
 	}	
-	//
-	cutp = strstr(str, "stop");
+	//disable
+	cutp = strstr(str, "disable");
 	if(cutp !=NULL){
-		control.out_stop = true;
-		SerialPort3_Send_string("stop\r\n");
+		control.control_mode = Control_Mode_Disable;
+		SerialPort_Send_string("disable\r\n");
 		return;
 	}
-	//
+	//save
 	cutp = strstr(str, "save");
 	if(cutp !=NULL){
 		Store_RAM_To_Flash(true);
-		SerialPort3_Send_string("save\r\n");
+		SerialPort_Send_string("save\r\n");
 		return;
 	}
-	//
+	//display
 	cutp = strstr(str, "display");
 	if(cutp !=NULL){
-		while(!SerialPort3_Refer_TX_Leisure());	sprintf(uart3_tx_buff, "pgvkp:%3.6f  pgvki:%3.6f  pgvkd:%3.6f  pgvkq:%3.6f\r\n", control.pgv_pid.Kp, control.pgv_pid.Ki, control.pgv_pid.Kd, control.pgv_pid.Kq);	SerialPort3_Send_TX();
-		while(!SerialPort3_Refer_TX_Leisure());	sprintf(uart3_tx_buff, "pkp:%3.6f  pki:%3.6f  pkd:%3.6f  pkq:%3.6f\r\n",         control.p_pid.Kp,   control.p_pid.Ki,   control.p_pid.Kd,   control.p_pid.Kq);		SerialPort3_Send_TX();
-		while(!SerialPort3_Refer_TX_Leisure());	sprintf(uart3_tx_buff, "vkp:%3.6f  vki:%3.6f  vkd:%3.6f  vkq:%3.6f\r\n",         control.v_pid.Kp,   control.v_pid.Ki,   control.v_pid.Kd,   control.v_pid.Kq);		SerialPort3_Send_TX();
-		while(!SerialPort3_Refer_TX_Leisure());	sprintf(uart3_tx_buff, "go_pgv:%3.6f  go_p:%3.6f  go_v:%3.6f  go_t:%3.6f\r\n",   control.goal_p,     control.goal_p,     control.goal_v,     control.goal_t);		SerialPort3_Send_TX();
-		while(!SerialPort3_Refer_TX_Leisure());	sprintf(uart3_tx_buff, "sdb:%d  ,dir_pm:%d,  t_pm:%3.6f  iu_pm:%3.6f\r\n",       control.sdb,        control.dir_pm,     control.t_pm,       control.iu_pm);		SerialPort3_Send_TX();
+		while(!SerialPort_Refer_TX_Leisure());	sprintf(uart_tx_buff, "pgvkp:%11.4f   pgvki:%11.4f  pgvkd:%11.4f  pgvkq:%11.4f\r\n",    control.pgv_pid.Kp, control.pgv_pid.Ki, control.pgv_pid.Kd, control.pgv_pid.Kq);	SerialPort_Send_TX();
+		while(!SerialPort_Refer_TX_Leisure());	sprintf(uart_tx_buff, "pkp:%11.4f     pki:%11.4f    pkd:%11.4f    pkq:%11.4f\r\n",      control.p_pid.Kp,   control.p_pid.Ki,   control.p_pid.Kd,   control.p_pid.Kq);		SerialPort_Send_TX();
+		while(!SerialPort_Refer_TX_Leisure());	sprintf(uart_tx_buff, "vkp:%11.4f     vki:%11.4f    vkd:%11.4f    vkq:%11.4f\r\n",      control.v_pid.Kp,   control.v_pid.Ki,   control.v_pid.Kd,   control.v_pid.Kq);		SerialPort_Send_TX();
+		while(!SerialPort_Refer_TX_Leisure());	sprintf(uart_tx_buff, "go_pgv:%11.4f  go_p:%11.4f   go_v:%11.4f   go_t:%11.4f\r\n",     control.goal_p,     control.goal_p,     control.goal_v,     control.goal_t);		SerialPort_Send_TX();
+		while(!SerialPort_Refer_TX_Leisure());	sprintf(uart_tx_buff, "sdb:%11d       dir_pm:%11d,  t_pm:%11.4f   drive_module:%d\r\n", control.sdb,        control.dir_pm,     control.t_pm,       control.drive_module);	SerialPort_Send_TX();
 		return;
 	}
 
 	/***********************************   读取   ***********************************/
 	cutp = strstr(str, "get");
 	if(cutp !=NULL){
-		while(!SerialPort3_Refer_TX_Leisure());	sprintf(uart3_tx_buff, "p:%3.6f  v:%3.6f\r\n", control.filter_p, control.filter_v);	SerialPort3_Send_TX();
+		while(!SerialPort_Refer_TX_Leisure());	sprintf(uart_tx_buff, "p:%11.4f  v:%11.4f\r\n", control.filter_p, control.filter_v);	SerialPort_Send_TX();
 		return;
 	}
 
 	/***********************************   帮助   ***********************************/
-	//
 	cutp = strstr(str, "help");
 	if(cutp !=NULL){
 		Store_RAM_To_Flash(true);
-		SerialPort3_Send_string("help\r\n");
+		SerialPort_Send_string("help\r\n");
 		return;
 	}
 }

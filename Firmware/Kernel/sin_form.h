@@ -24,6 +24,10 @@
 #ifndef SIN_FORM_H
 #define SIN_FORM_H
 
+#ifdef __cplusplus
+ extern "C" {
+#endif
+
 #include <stdint.h>
 
 //sin4
@@ -184,5 +188,9 @@ const int sin3600[sin3600_num+1] = {
 -46, -45, -43, -41, -39, -38, -36, -34, -32, -30, -29, -27, -25, -23, -21, -20, -18, -16, -14, -13, -11, -9, -7, -5, -4, -2, 0
 };
 
+#ifdef __cplusplus
+}
+#endif
+	 
 #endif	//SIN_FORM_H
 

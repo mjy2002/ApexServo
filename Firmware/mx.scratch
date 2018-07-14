@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Project>
-<ProjectName>C:\StepServo\Develop\Firmware\\Apex</ProjectName>
+<ProjectName>C:\ApexServo\ApexServoV11_develop\Firmware\\Apex</ProjectName>
 <ProjectNature>C</ProjectNature> 
 <CMSIS>..\Drivers\CMSIS</CMSIS>
 <HAL_Driver>C:\Users\feidi\STM32Cube\Repository\STM32Cube_FW_F1_V1.6.1\Drivers\CMSIS</HAL_Driver>
@@ -34,8 +34,8 @@
 			
     <usedDebug>true</usedDebug>
     	<debugprobe>swd</debugprobe>
-    <optimization>2</optimization>
-    <icfloc>1</icfloc>
+    <optimization></optimization>
+    <icfloc>0</icfloc>
     <Adefines>
         <define></define>
     </Adefines>   
@@ -100,15 +100,6 @@
 						</file>
 						<file>
 							<name>../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_uart.c</name>
-						</file>
-						<file>
-							<name>../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_pcd.c</name>
-						</file>
-						<file>
-							<name>../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_pcd_ex.c</name>
-						</file>
-						<file>
-							<name>../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_ll_usb.c</name>
 						</file>
 						<file>
 							<name>../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal.c</name>
